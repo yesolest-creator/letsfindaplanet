@@ -78,12 +78,13 @@ with left_col:
     }
 
 def show_result(label_symbol, v_los_value, phi_deg):
-    # 시선 속도 수치 (소수점 첫째 자리)
+    # 시선 속도 수치 표기 (소수점 첫째 자리)
     if label_symbol == "V":
         st.markdown(f"**별의 시선 속도**  \n$V_{{los}} \\approx {v_los_value:.1f}$")
     else:
         st.markdown(f"**행성의 시선 속도**  \n$v_{{los}} \\approx {v_los_value:.1f}$")
 
+    # 30, 45, 60도 체크
     special_angles = [30, 45, 60]
     cos_frac = {
         30: r"\frac{\sqrt{3}}{2}",
@@ -92,40 +93,32 @@ def show_result(label_symbol, v_los_value, phi_deg):
     }
 
     diffs = [abs(phi_deg - a) for a in special_angles]
-    nearest = special_angles[int(np.argmin(diffs))]
-    diff = min(diffs)
+    nearest = special_angles[diffs.index(min(diffs))]
 
-    if diff < 2:
-        frac = cos_frac[nearest]
+    if min(diffs) < 2:
         angle_str = str(nearest)
+        frac = cos_frac[nearest]
 
         # φ 와 cosφ 표시
         st.latex(
-            r"\varphi \approx "
-            + angle_str
-            + r"^\circ,\quad \cos\varphi = \cos"
-            + angle_str
-            + r"^\circ = "
-            + frac
+            "\\varphi \\approx " + angle_str +
+            "^\\circ, \\quad \\cos\\varphi = \\cos" +
+            angle_str + "^\\circ = " + frac
         )
 
-        # V_los 또는 v_los 식 표시
         if label_symbol == "V":
-            st.latex(r"V_{\text{los}} = V \cos\varphi")
+            st.latex("V_{\\text{los}} = V \\cos\\varphi")
             st.latex(
-                r"V_{\text{los}} = V \cos"
-                + angle_str
-                + r"^\circ = V \cdot "
-                + frac
+                "V_{\\text{los}} = V \\cos" +
+                angle_str + "^\\circ = V \\cdot " + frac
             )
         else:
-            st.latex(r"v_{\text{los}} = v \cos\varphi")
+            st.latex("v_{\\text{los}} = v \\cos\\varphi")
             st.latex(
-                r"v_{\text{los}} = v \cos"
-                + angle_str
-                + r"^\circ = v \cdot "
-                + frac
+                "v_{\\text{los}} = v \\cos" +
+                angle_str + "^\\circ = v \\cdot " + frac
             )
+
 
 
 \varphi \approx {nearest}^\circ,\quad
