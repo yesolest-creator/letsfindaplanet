@@ -77,14 +77,13 @@ with left_col:
         60: r"\frac{1}{2}",
     }
 
-   def show_result(label_symbol, v_los_value, phi_deg)
+def show_result(label_symbol, v_los_value, phi_deg):
     # 시선 속도 수치 (소수점 첫째 자리)
     if label_symbol == "V":
         st.markdown(f"**별의 시선 속도**  \n$V_{{los}} \\approx {v_los_value:.1f}$")
     else:
         st.markdown(f"**행성의 시선 속도**  \n$v_{{los}} \\approx {v_los_value:.1f}$")
 
-    # φ가 30/45/60° 근처면 삼각비로 표시
     special_angles = [30, 45, 60]
     cos_frac = {
         30: r"\frac{\sqrt{3}}{2}",
@@ -96,15 +95,18 @@ with left_col:
     nearest = special_angles[int(np.argmin(diffs))]
     diff = min(diffs)
 
-    if diff < 2:  # ±2° 안에 들어오면 해당 각도로 간주
+    if diff < 2:
         frac = cos_frac[nearest]
         angle_str = str(nearest)
 
         # φ 와 cosφ 표시
         st.latex(
-            r"\varphi \approx " + angle_str
+            r"\varphi \approx "
+            + angle_str
             + r"^\circ,\quad \cos\varphi = \cos"
-            + angle_str + r"^\circ = " + frac
+            + angle_str
+            + r"^\circ = "
+            + frac
         )
 
         # V_los 또는 v_los 식 표시
@@ -112,14 +114,19 @@ with left_col:
             st.latex(r"V_{\text{los}} = V \cos\varphi")
             st.latex(
                 r"V_{\text{los}} = V \cos"
-                + angle_str + r"^\circ = V \cdot " + frac
+                + angle_str
+                + r"^\circ = V \cdot "
+                + frac
             )
         else:
             st.latex(r"v_{\text{los}} = v \cos\varphi")
             st.latex(
                 r"v_{\text{los}} = v \cos"
-                + angle_str + r"^\circ = v \cdot " + frac
+                + angle_str
+                + r"^\circ = v \cdot "
+                + frac
             )
+
 
 \varphi \approx {nearest}^\circ,\quad
 \cos\varphi = \cos{nearest}^\circ = {frac}
