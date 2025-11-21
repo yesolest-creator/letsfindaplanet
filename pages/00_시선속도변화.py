@@ -77,7 +77,7 @@ with left_col:
         60: r"\frac{1}{2}",
     }
 
-   def show_result(label_symbol, v_los_value, phi_deg):
+   def show_result(label_symbol, v_los_value, phi_deg)
     # 시선 속도 수치 (소수점 첫째 자리)
     if label_symbol == "V":
         st.markdown(f"**별의 시선 속도**  \n$V_{{los}} \\approx {v_los_value:.1f}$")
