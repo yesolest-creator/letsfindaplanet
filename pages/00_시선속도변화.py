@@ -34,7 +34,7 @@ planet_pos = np.array([r_planet * np.cos(theta), r_planet * np.sin(theta)])
 
 # ========= 공전 속도 벡터 =========
 # 접선 방향 (행성 기준, 반시계 방향)
-t_hat = np.array([-np.sin(theta), np.cos(theta)]
+t_hat = np.array([-np.sin(theta), np.cos(theta)])
 
 # 별 실제 속도 V (행성과 반대 방향, 크기는 비례)
 V_vec = -omega * r_star * t_hat
