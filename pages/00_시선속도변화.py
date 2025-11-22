@@ -39,7 +39,7 @@ planet_pos = com_pos - r_planet * R_hat  # 별과 반대편에 위치
 # R_hat = (Rx, Ry) 일 때, 접선 방향(반시계) t_hat = (-Ry, Rx)
 t_hat = np.array([-R_hat[1], R_hat[0]])
 
-# 별과 행성의 실제 공전 속도 크기 (임의 단위, 학생에겐 V, v로 설명)
+# 별과 행성의 실제 공전 속도 크기 (학생에게는 V, v로 설명)
 V_mag = 1.0   # 별 속도 크기 = V
 v_mag = 1.5   # 행성 속도 크기 = v (별보다 조금 빠르게)
 
@@ -51,51 +51,8 @@ def line_of_sight_component(vel_vec):
     """지구에서 멀어지는 방향(관측자→질량중심)을 +로 한 시선속도 성분"""
     return float(np.dot(vel_vec, n_hat))
 
-V_los_num = line_of_sight_component(V_vec)   # 별 시선속도 (수치)
-v_los_num = line_of_sight_component(v_vec)   # 행성 시선속도 (수치)
-
-# ========= 시선속도 표시용 포맷 함수 =========
-def format_los(symbol, los_value, theta_deg):
-    """
-    symbol: 'V' (별) 또는 'v' (행성)
-    los_value: 실제 수치 (V_mag 또는 v_mag 기준)
-    theta_deg: 관측자-질량중심-별 사이 각도
-    """
-    # 부호
-    if abs(los_value) < 1e-6:
-        sign_str = ""
-    elif los_value > 0:
-        sign_str = "+"
-    else:
-        sign_str = "-"
-
-    # 특수각에 대한 삼각비 표현
-    special = {30: "1/2", 45: "루트2/2", 60: "루트3/2"}
-    nearest = min(special.keys(), key=lambda a: abs(a - theta_deg))
-
-    if abs(theta_deg - nearest) < 0.5:
-        # θ가 30, 45, 60도 근처일 때: 1/2, 루트2/2, 루트3/2 로 표현
-        factor_str = special[nearest]
-        if abs(los_value) < 1e-6:
-            return f"{symbol}_los = 0"
-        else:
-            return f"{symbol}_los = {sign_str}{factor_str} · {symbol}"
-    else:
-        # 일반각: 소수로 표현 (예: V_los ≈ +0.87 · V)
-        base = V_mag if symbol == "V" else v_mag
-        ratio = los_value / base
-        return f"{symbol}_los ≈ {sign_str}{abs(ratio):.2f} · {symbol}"
-
-# ========= 시선속도 출력 =========
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("🌞 별의 시선속도")
-    st.markdown(f"**{format_los('V', V_los_num, theta_deg)}**")
-
-with col2:
-    st.subheader("🪐 행성의 시선속도")
-    st.markdown(f"**{format_los('v', v_los_num, theta_deg)}**")
+V_los = line_of_sight_component(V_vec)   # 별 시선속도
+v_los = line_of_sight_component(v_vec)   # 행성 시선속도
 
 # ========= 그래프 =========
 fig = go.Figure()
@@ -159,7 +116,7 @@ fig.add_trace(
     )
 )
 
-# 3. 관측자-질량중심 선 (회색 점선)
+# 관측자-질량중심 선 (회색 점선)
 fig.add_trace(
     go.Scatter(
         x=[earth_pos[0], com_pos[0]],
@@ -191,27 +148,28 @@ def add_arrow(start, vec, color):
     )
     return end
 
-# 실제 속도 화살표 (둘 다 검은색)
-V_dir = V_vec / (np.linalg.norm(V_vec) + 1e-9)
-v_dir = v_vec / (np.linalg.norm(v_vec) + 1e-9)
+# ========= 길이 스케일 설정 =========
+# 공전 속도 벡터와 시선 속도 벡터가 같은 스케일로 그려지도록
+max_speed_mag = max(np.linalg.norm(V_vec), np.linalg.norm(v_vec), 1e-6)
+base_len = 0.6  # 화면 안에서 보일 기본 길이
 
-star_speed_len = 0.3
-planet_speed_len = 0.4
+speed_scale = base_len / max_speed_mag  # 실제 속도 → 화면 길이 변환 계수
 
-star_tip_speed = add_arrow(star_pos, V_dir * star_speed_len, "black")
-planet_tip_speed = add_arrow(planet_pos, v_dir * planet_speed_len, "black")
+# 실제 속도 화살표 (둘 다 검은색, 길이 비례: V, v)
+star_speed_vec_draw = V_vec * speed_scale
+planet_speed_vec_draw = v_vec * speed_scale
 
-# 시선속도 화살표 (LOS 방향에 평행, 빨간/파란색)
-max_abs_los = max(abs(V_los_num), abs(v_los_num), 0.01)
-los_base_len = 0.4
+star_tip_speed = add_arrow(star_pos, star_speed_vec_draw, "black")
+planet_tip_speed = add_arrow(planet_pos, planet_speed_vec_draw, "black")
 
-star_los_vec = n_hat * (V_los_num / max_abs_los) * los_base_len
-planet_los_vec = n_hat * (v_los_num / max_abs_los) * los_base_len
+# 시선 속도 화살표 (LOS 방향에 평행, 길이 비례: V_los, v_los)
+star_los_vec_draw = n_hat * (V_los * speed_scale)
+planet_los_vec_draw = n_hat * (v_los * speed_scale)
 
-star_tip_los = add_arrow(star_pos, star_los_vec, "red")
-planet_tip_los = add_arrow(planet_pos, planet_los_vec, "blue")
+star_tip_los = add_arrow(star_pos, star_los_vec_draw, "red")
+planet_tip_los = add_arrow(planet_pos, planet_los_vec_draw, "blue")
 
-# 2. 공전속도 끝 ↔ 시선속도 끝 연결 (직각삼각형의 한 변, 회색 점선)
+# 공전속도 끝 ↔ 시선속도 끝 연결 (직각삼각형의 한 변, 회색 점선)
 fig.add_trace(
     go.Scatter(
         x=[star_tip_speed[0], star_tip_los[0]],
@@ -242,6 +200,15 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
+# ========= 그림 아래에 시선속도 값 출력 =========
+st.markdown("### 📊 시선속도 값 (지구에서 멀어지는 방향을 +로 한 속도)")
+
+col1, col2 = st.columns(2)
+with col1:
+    st.markdown(f"**별 V_los ≈ {V_los:.2f}**")
+with col2:
+    st.markdown(f"**행성 v_los ≈ {v_los:.2f}**")
+
 st.markdown(
     """
 - 🟢 초록 점: 관측자(지구)  
@@ -249,10 +216,10 @@ st.markdown(
 - 🟠 주황 점: 별  
 - 🔵 파란 점: 행성  
 
-- **검은 화살표**: 공전 속도 벡터 (별/행성)  
-- **빨간 화살표**: 별의 시선 속도 벡터 (V_los)  
-- **파란 화살표**: 행성의 시선 속도 벡터 (v_los)  
-- **회색 점선**(지구–질량중심): 시선 방향 기준  
-- **회색 점선**(두 화살표 끝 연결): 공전속도–시선속도–접선속도 직각삼각형의 한 변  
+- **검은 화살표**: 공전 속도 벡터 (별·행성, 크기 V, v)  
+- **빨간 화살표**: 별의 시선 속도 벡터 (길이 = V_los)  
+- **파란 화살표**: 행성의 시선 속도 벡터 (길이 = v_los)  
+- **회색 점선 (지구–질량중심)**: 시선 방향 기준선  
+- **회색 점선 (두 화살표 끝 연결)**: 공전속도와 시선속도가 이루는 직각삼각형의 한 변  
 """
 )
